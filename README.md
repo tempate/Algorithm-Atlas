@@ -30,7 +30,7 @@ thirteen times over, and exists to put them on screen.
 
 ```
 projects/algorithms      mazes, path finding, regression, sorting, TSP   (p5.js)
-projects/ai              blocks, flappy bird, rockets, steering, XOR     (p5.js)
+projects/ai              flappy bird, rockets, steering, XOR             (p5.js)
 projects/cryptography    AES, SHA-1, RSA                                 (python)
 
 index.html               the menu
