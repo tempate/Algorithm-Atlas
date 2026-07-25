@@ -1,71 +1,94 @@
 ## Projects
 
 In this repository I intend to keep track of some algorithms I've been learning throw the past year.
-The code consists on a Django application that runs the algorithms, written in [p5.js](https://p5js.org/) (Processing) as static files.
+The code consists on a set of algorithms written in [p5.js](https://p5js.org/) (Processing),
+and three cryptography demos written in Python.
 
-The cryptography demos (AES, SHA-1 and RSA) are hand-written Python and run on the
-server. Everything else is a p5.js sketch and runs in the browser.
-
-There is no database. The list of projects lives in `index/catalog.py`, and the only
-per-user state is the asymmetric-key demo's chat, kept in a signed cookie.
+There is no server and no build step. The pages are plain HTML, the sketches are
+p5.js, and the cryptography is the original Python, running in the browser under
+[Brython](https://brython.info/).
 
 ### Running the code
 
-#### Install dependencies
-
-1. Create a virtual environment
-```
-python -m venv venv
-```
-
-2. Activate the virtual environment
-```
-source venv/bin/activate
-```
-
-3. Install the requirements
-```
-pip install -r requirements.txt
-```
-
-#### Set up a secret key
-
-4. Generate a secret key for Django
-```
-python gen_secret_key.py
-```
-
-5. Export the secret as an environment variable
-```
-export DJANGO_SECRET_KEY='your-secret-key'
-```
-
-Sessions are signed with this key, so changing it clears any chat in progress.
-
-#### Launch the site
-
-###### Development
-
-Use this approach when launching the site locally in development. It is simpler and
-automatically reloads the application when the code changes. `DJANGO_DEBUG` serves the
-static files straight from the source tree and shows tracebacks in the browser.
+Any static file server will do:
 
 ```
-DJANGO_DEBUG=1 python manage.py runserver 0.0.0.0:8080
+python -m http.server 8000
 ```
 
-###### Production
+Then open <http://localhost:8000>.
 
-Use this approach when launching the site in production. It is faster, more scalable,
-and designed to handle production loads. Leave `DJANGO_DEBUG` unset.
+### Publishing it
 
-Collect the static files first. WhiteNoise compresses them and stamps a hash into each
-filename, so this has to run again whenever a static file changes.
+The site is plain files, so it can be served from anywhere. On GitHub Pages,
+under Settings → Pages, set the source to *Deploy from a branch* and pick the
+branch with `/ (root)` as the folder. There is nothing to build.
+
+The empty `.nojekyll` file at the root is load bearing. Without it GitHub runs
+Jekyll over the repository first, and Jekyll drops two things this site needs:
+`vendor/`, which is in its default exclude list, and the `__init__.py` files,
+because it skips anything whose name starts with an underscore. The result
+would be a site with no Bootstrap, no p5.js, no Brython, and no working
+cryptography pages.
+
+Links are relative throughout, so the site works both at a domain root and
+under `https://<user>.github.io/<repo>/`.
+
+Opening `index.html` from the filesystem works for the p5.js pages, but not for
+the three cryptography ones: Brython fetches the Python modules over HTTP, which
+`file://` does not allow.
+
+### Layout
+
+`projects/` is the interesting part: the algorithms themselves, grouped the same
+way the site groups them. The HTML beside it is mostly the same boilerplate
+thirteen times over, and exists to put them on screen.
 
 ```
-python manage.py collectstatic --noinput
-gunicorn projects.wsgi:application --bind 0.0.0.0:8000
+projects/algorithms      mazes, path finding, regression, sorting, TSP   (p5.js)
+projects/ai              flappy bird, rockets, steering, XOR             (p5.js)
+projects/cryptography    AES, SHA-1, RSA                                 (python)
+
+index.html               the menu
+algorithms/  ai/  cryptography/   one page per project, grouped as above
+css/style.css            the stylesheet
+
+vendor/p5                p5.js
+vendor/bootstrap         bootstrap, and jquery and popper beside it
+vendor/brython           the Brython runtime
+
+tools/test_crypto.py     known-answer tests for the cryptography
+tools/check_heads.py     checks the pages have not drifted apart
 ```
 
-Whichever hostname the site is served under has to be in `ALLOWED_HOSTS` in
-`projects/settings.py`. On Render, `RENDER_EXTERNAL_HOSTNAME` is picked up automatically.
+### The cryptography
+
+`projects/cryptography` is hand-written and has no dependencies, so it runs
+under CPython as well as in the browser. `tools/test_crypto.py` checks it against
+known answers: AES against the FIPS-197 vector, SHA-1 against `hashlib`, and RSA
+round trips including messages longer than the modulus.
+
+```
+python tools/test_crypto.py
+```
+
+Run it after touching anything under `projects/cryptography`.
+
+The asymmetric page keeps its keypairs and conversation in `localStorage`, so a
+reload picks up where it left off. Regenerate clears them.
+
+None of this is meant to secure anything. The keys are small enough to display on
+the page, and the interesting part is watching the algorithms work.
+
+### Adding a page
+
+Put the code under `projects/`, copy the closest existing page, change
+the title and the script it loads, and add a link to it in `index.html`. There is
+no template to expand and nothing to rebuild.
+
+Every page carries its own copy of the same `<head>`, since there is no template
+engine to share one. If you change it, change it everywhere and confirm with:
+
+```
+python tools/check_heads.py
+```

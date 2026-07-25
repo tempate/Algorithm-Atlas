@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>Projects</title>
+
+        
+        <link rel="stylesheet" href="../vendor/bootstrap/css/bootstrap.min.css">
+        <link rel="stylesheet" href="../css/style.css" type="text/css">
+
+        <script src="../vendor/jquery/jquery-3.7.1.min.js"></script>
+        <script src="../vendor/popper/popper.min.js"></script>
+        <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+        <script src="../vendor/p5/p5.min.js"></script>
+        <script src="../vendor/p5/p5.dom.js"></script>
+        
+    </head>
+
+    <body onload="brython({indexedDB: false})">
+        <div class="site-wrapper">
+            <div class="site-wrapper-inner">
+                <div class="cover-container">
+                    <div class="masthead clearfix">
+                        <div class="inner">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="container">
+                    
+<a class="a-unstyled" href="../index.html">
+    <h2>Asymmetric-key</h2>
+</a>
+
+<div style="height: 50px;"></div>
+
+<div id="chatbox"></div>
+
+<div class="row justify-content-center">
+    <p id="error" class="red"></p>
+</div>
+
+<div class="justify-content-center row">
+    <div class="col-sm-6">
+        <h4>Alice</h4>
+        <div class="input-group">
+            <input type="text" id="alice-msg" class="form-control" maxlength="500" placeholder="Message from Alice">
+            <div class="input-group-btn">
+                <button type="button" id="alice-send" class="btn btn-outline-primary" disabled>Send</button>
+            </div>
+        </div>
+        <div class="form-group justify-content-center row" style="margin-top: 50px;">
+            <label>PK</label>
+            <div class="col-sm-8">
+                <input id="alice-pk" class="form-control form-control-sm" value="generating..." readonly>
+            </div>
+        </div>
+        <div class="form-group justify-content-center row">
+            <label>SK</label>
+            <div class="col-sm-8">
+                <input id="alice-sk" class="form-control form-control-sm" value="generating..." readonly>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <h4>Bob</h4>
+        <div class="input-group">
+            <input type="text" id="bob-msg" class="form-control" maxlength="500" placeholder="Message from Bob">
+            <div class="input-group-btn">
+                <button type="button" id="bob-send" class="btn btn-outline-primary" disabled>Send</button>
+            </div>
+        </div>
+        <div class="form-group justify-content-center row" style="margin-top: 50px;">
+            <label>PK</label>
+            <div class="col-sm-8">
+                <input id="bob-pk" class="form-control form-control-sm" value="generating..." readonly>
+            </div>
+        </div>
+        <div class="form-group justify-content-center row">
+            <label>SK</label>
+            <div class="col-sm-8">
+                <input id="bob-sk" class="form-control form-control-sm" value="generating..." readonly>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="justify-content-center row" style="margin-top: 20px;">
+    <div class="col-sm-6">
+        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+            <button type="button" id="encrypt" class="btn btn-primary" onclick="update(0)">Encrypt</button>
+            <button type="button" id="decrypt" class="btn btn-outline-primary" onclick="update(1)">Decrypt</button>
+        </div>
+    </div>
+
+    <div class="col-sm-6">
+        <div class="btn-group">
+            <button type="button" id="regenerate" class="btn btn-outline-primary" disabled>Regenerate</button>
+            <div class="btn-group" role="group">
+                <button id="alg" type="button" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  RSA
+                </button>
+                <div class="dropdown-menu text-center" aria-labelledby="action">
+                  <a class="dropdown-item" href="asymmetric.html">RSA</a>
+                </div>
+              </div>
+        </div>
+    </div>
+</div>
+
+
+                </div>
+            </div>
+        </div>
+
+         
+<script type="text/javascript">
+    // Which of the two the chatbox is showing. Python redraws the messages and
+    // then calls update() again so the choice survives. It hangs off window
+    // because a top-level let is not reachable from Brython.
+    window.currentAction = 0;
+
+    function update(action) {
+        window.currentAction = action;
+
+        let cipher = document.querySelectorAll("*[id^='cipher']");
+        let plain = document.querySelectorAll("*[id^='plain']");
+
+        for (let i = 0; i < cipher.length; i++) {
+            cipher[i].style.display = action === 0 ? "inline" : "none";
+            plain[i].style.display = action === 0 ? "none" : "inline";
+        }
+
+        document.getElementById("encrypt").className =
+            action === 0 ? "btn btn-primary" : "btn btn-outline-primary";
+        document.getElementById("decrypt").className =
+            action === 0 ? "btn btn-outline-primary" : "btn btn-primary";
+    }
+</script>
+
+<script src="../vendor/brython/brython.js"></script>
+<script src="../vendor/brython/brython_stdlib.js"></script>
+
+<!-- pythonpath is read off this tag, not from the brython() call -->
+<script type="text/python" pythonpath="../projects">
+import json
+
+from browser import document, html, window
+from browser.local_storage import storage
+
+from cryptography import rsa
+
+USERS = ("alice", "bob")
+MAX_MESSAGE = 500
+# Namespaced because every project site a user publishes shares the one
+# <user>.github.io origin, and so shares localStorage with all the others.
+STORAGE_KEY = "algorithm-atlas.asymmetric"
+
+state = {}
+
+
+def load_state() -> dict:
+    """
+    Reads back the conversation from a previous visit.
+
+    Anything unreadable is treated as absent, so a stale or hand-edited entry
+    costs a fresh keyring rather than a broken page.
+    """
+    if STORAGE_KEY not in storage:
+        return {}
+
+    raw = storage[STORAGE_KEY]
+
+    try:
+        stored = json.loads(raw)
+        loaded = {"history": stored["history"]}
+
+        for name in USERS:
+            # The keys are far larger than a JSON number survives, so they are
+            # written as text and read back as ints.
+            loaded[name] = {part: [int(n) for n in stored[name][part]]
+                            for part in ("pk", "sk")}
+    except Exception:
+        # Deliberately broad: whatever is wrong with a stored entry, the right
+        # answer is a fresh keyring rather than a page that will not start.
+        return {}
+
+    return loaded
+
+
+def save_state():
+    keys = {name: {part: [str(n) for n in state[name][part]]
+                   for part in ("pk", "sk")}
+            for name in USERS}
+    keys["history"] = state["history"]
+
+    try:
+        storage[STORAGE_KEY] = json.dumps(keys)
+    except Exception:
+        # A full or disabled store should not stop the demo working; the
+        # conversation just will not outlive the page.
+        pass
+
+
+def new_keys():
+    """ Give Alice and Bob a fresh keyring and an empty conversation. """
+    for name in USERS:
+        keys = rsa.RSA()
+        state[name] = {"pk": keys.public_key, "sk": keys.private_key}
+
+    state["history"] = []
+    save_state()
+
+
+def show_keys():
+    for name in USERS:
+        document[name + "-pk"].value = state[name]["pk"][0]
+        document[name + "-sk"].value = state[name]["sk"][0]
+
+
+def show_history():
+    """ Redraws the conversation, keeping whichever view is selected. """
+    box = document["chatbox"]
+    box.clear()
+
+    for i, message in enumerate(state["history"], start=1):
+        row = html.DIV(Class="justify-content-left row")
+        row <= html.B(message["user"].title() + ": \xa0")
+        row <= html.P(message["cipher"], id="cipher%d" % i)
+        row <= html.P(message["plain"], id="plain%d" % i)
+        box <= row
+
+    window.update(window.currentAction)
+    box.scrollTop = box.scrollHeight
+
+
+def send(user):
+    def handler(event):
+        field = document[user + "-msg"]
+        msg = field.value
+
+        if not msg:
+            document["error"].text = "Type a message."
+            return
+
+        if len(msg) > MAX_MESSAGE:
+            document["error"].text = \
+                "Messages are limited to %d characters." % MAX_MESSAGE
+            return
+
+        document["error"].text = ""
+        to = "bob" if user == "alice" else "alice"
+
+        # Signed with the sender's private key, then sealed with the
+        # recipient's public one, and unwrapped in the same order.
+        cipher_ = rsa.encrypt(msg, state[user]["sk"])
+        cipher = rsa.encrypt(cipher_, state[to]["pk"])
+        plain_ = rsa.decrypt(cipher, state[to]["sk"])
+        plain = rsa.decrypt(plain_, state[user]["pk"])
+
+        state["history"].append({"plain": plain, "cipher": cipher, "user": user})
+        save_state()
+
+        field.value = ""
+        show_history()
+
+    return handler
+
+
+def regenerate(event):
+    document["error"].text = ""
+    new_keys()
+    show_keys()
+    show_history()
+
+
+def start():
+    state.update(load_state())
+
+    if not all(name in state for name in USERS + ("history",)):
+        new_keys()
+
+    show_keys()
+    show_history()
+
+    for name in USERS:
+        document[name + "-send"].bind("click", send(name))
+        del document[name + "-send"].attrs["disabled"]
+
+    document["regenerate"].bind("click", regenerate)
+    del document["regenerate"].attrs["disabled"]
+
+
+try:
+    start()
+except Exception as exc:
+    # Better a visible reason than a page stuck on "generating...".
+    document["error"].text = "Could not start: %s: %s" % (type(exc).__name__, exc)
+</script>
+
+
+    </body>
+</html>

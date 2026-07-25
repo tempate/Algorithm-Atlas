@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>Projects</title>
+
+        
+        <link rel="stylesheet" href="../vendor/bootstrap/css/bootstrap.min.css">
+        <link rel="stylesheet" href="../css/style.css" type="text/css">
+
+        <script src="../vendor/jquery/jquery-3.7.1.min.js"></script>
+        <script src="../vendor/popper/popper.min.js"></script>
+        <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+        <script src="../vendor/p5/p5.min.js"></script>
+        <script src="../vendor/p5/p5.dom.js"></script>
+        
+    </head>
+
+    <body onload="brython({indexedDB: false})">
+        <div class="site-wrapper">
+            <div class="site-wrapper-inner">
+                <div class="cover-container">
+                    <div class="masthead clearfix">
+                        <div class="inner">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="container">
+                    
+<a class="a-unstyled" href="../index.html">
+    <h2>Symmetric-key</h2>
+</a>
+
+<div style="height: 50px;"></div>
+
+<form onsubmit="return false;">
+    <div class="form-group">
+        <textarea id="msg" name="msg" class="form-control" rows="8" cols="80" placeholder="Message to encrypt"></textarea>
+    </div>
+    <div class="form-group row justify-content-center">
+        <div class="col-sm-8">
+            <input type="text" class="form-control text-center" id="key" name="key" placeholder="Key" readonly>
+        </div>
+        <button type="button" class="btn btn-outline-primary" onclick="generateKey()" name="genkey">Generate</button>
+    </div>
+    <div class="form-group row justify-content-center">
+        <div class="col-sm-4">
+            <select id="alg" class="form-control text-center" name="alg">
+                <option value="aes">AES</option>
+            </select>
+        </div>
+        <div class="col-sm-4">
+            <select id="action" class="form-control text-center" name="action">
+                <option value="encrypt">Encrypt</option>
+                <option value="decrypt">Decrypt</option>
+            </select>
+        </div>
+    </div>
+    <button id="run" type="button" class="btn btn-outline-primary" disabled>Starting...</button>
+    <div class="row justify-content-center">
+        <p id="error" class="red margin-top"></p>
+    </div>
+</form>
+
+
+                </div>
+            </div>
+        </div>
+
+         
+    <script type="text/javascript">
+        // AES-128 reads the key as 16 raw bytes, so 16 characters is the whole
+        // key. Generating 32 only ever showed half a key that mattered.
+        function generateKey() {
+            let values = "0123456789ABCDEF";
+            let key = "";
+
+            for (let i = 0; i < 16; i++) {
+                key += values[parseInt(Math.random()*16)];
+            }
+
+            document.getElementById("key").value = key;
+        }
+
+        generateKey();
+    </script>
+
+    <script src="../vendor/brython/brython.js"></script>
+    <script src="../vendor/brython/brython_stdlib.js"></script>
+
+    <!-- pythonpath is read off this tag, not from the brython() call -->
+    <script type="text/python" pythonpath="../projects">
+from browser import document
+
+from cryptography import aes
+
+CIPHERS = {"aes": aes}
+KEY_LENGTH = 16     # AES-128 takes a 128-bit key.
+
+
+def run(event):
+    """ Replaces the message with the result, as the server used to. """
+    msg = document["msg"].value
+    key = document["key"].value
+
+    if not msg:
+        document["error"].text = "Type a message."
+        return
+
+    if len(key) != KEY_LENGTH:
+        document["error"].text = \
+            "The key must be exactly %d characters." % KEY_LENGTH
+        return
+
+    document["error"].text = ""
+
+    cipher = CIPHERS[document["alg"].value]
+    document["msg"].value = getattr(cipher, document["action"].value)(msg, key)
+
+
+document["run"].bind("click", run)
+document["run"].text = "Process"
+del document["run"].attrs["disabled"]
+    </script>
+
+
+    </body>
+</html>

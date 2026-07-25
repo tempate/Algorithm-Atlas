@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>Projects</title>
+
+        
+        <link rel="stylesheet" href="vendor/bootstrap/css/bootstrap.min.css">
+        <link rel="stylesheet" href="css/style.css" type="text/css">
+
+        <script src="vendor/jquery/jquery-3.7.1.min.js"></script>
+        <script src="vendor/popper/popper.min.js"></script>
+        <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+        <script src="vendor/p5/p5.min.js"></script>
+        <script src="vendor/p5/p5.dom.js"></script>
+        
+    </head>
+
+    <body >
+        <div class="site-wrapper">
+            <div class="site-wrapper-inner">
+                <div class="cover-container">
+                    <div class="masthead clearfix">
+                        <div class="inner">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="container">
+                    
+<h2 class="page-header">
+  <a class="a-unstyled" href="index.html">Projects</a>
+</h2>
+
+<ul class="list-unstyled margin-top">
+    
+        <li><button type="button" class="btn btn-outline-secondary" id="cryptography" onclick="activate(this.id)"> Cryptography </button></li>
+    
+        <li><button type="button" class="btn btn-outline-secondary" id="ai" onclick="activate(this.id)"> Artificial Intelligence </button></li>
+    
+        <li><button type="button" class="btn btn-outline-secondary" id="algorithms" onclick="activate(this.id)"> Algorithms </button></li>
+    
+</ul>
+
+
+<ul class="list-unstyled hidden" id="cryptography-info">
+    
+        <li><a class="a-unstyled" href="cryptography/asymmetric.html"> Asymmetric </a></li>
+    
+        <li><a class="a-unstyled" href="cryptography/hash.html"> Hash </a></li>
+    
+        <li><a class="a-unstyled" href="cryptography/symmetric.html"> Symmetric </a></li>
+    
+</ul>
+
+<ul class="list-unstyled hidden" id="ai-info">
+    
+    
+        <li><a class="a-unstyled" href="ai/flappy_bird.html"> Flappy Bird </a></li>
+    
+        <li><a class="a-unstyled" href="ai/smart_rockets.html"> Smart Rockets </a></li>
+    
+        <li><a class="a-unstyled" href="ai/steering_behaviours.html"> Steering Behaviours </a></li>
+    
+        <li><a class="a-unstyled" href="ai/xor.html"> XOR </a></li>
+    
+</ul>
+
+<ul class="list-unstyled hidden" id="algorithms-info">
+    
+        <li><a class="a-unstyled" href="algorithms/maze_generation.html"> Maze Generation </a></li>
+    
+        <li><a class="a-unstyled" href="algorithms/path_finding.html"> Path Finding </a></li>
+    
+        <li><a class="a-unstyled" href="algorithms/regression.html"> Regression </a></li>
+    
+        <li><a class="a-unstyled" href="algorithms/sorting.html"> Sorting </a></li>
+    
+        <li><a class="a-unstyled" href="algorithms/tsp.html"> Traveling Salesman Problem </a></li>
+    
+</ul>
+
+
+
+                </div>
+            </div>
+        </div>
+
+        
+<script type="text/javascript">
+let active = false;
+
+function activate(id) {
+    let buttons = document.getElementsByTagName('button');
+
+    for (let i = 0; i < buttons.length; i++) {
+      if (buttons[i].id != id) {
+          if (active) {
+              buttons[i].style.display = "inline";
+          } else {
+              buttons[i].style.display = "none";
+          }
+      }
+    }
+
+    let info = document.getElementById(id + "-info");
+    if (active) {
+        info.style.display = "none";
+    } else {
+        info.style.display = "inline";
+    }
+
+
+    active = !active;
+}
+</script>
+
+    </body>
+</html>
