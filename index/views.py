@@ -1,34 +1,15 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
-from .models import Available
 
-import json
-
+from . import catalog
 from .cryptography import aes, rsa, sha1, pgp
+
+HISTORY_LIMIT = 10
 
 
 def home(request):
-    if request.user.is_superuser:
-        available = Available.objects.order_by("name")
-    else:
-        available = Available.objects.filter(access=True).order_by("name")
-
-    groups = {}
-
-    for element in available:
-        if element.group in groups:
-            groups[element.group]["sections"].append(element)
-        else:
-            groups[element.group] = {
-                "name": element.group,
-                "link": element.group.replace(' ', '').lower(),
-                "sections": [element]
-            }
-
-    groups = [groups[group] for group in groups]
-
     return render(request, "index/home.html", {
-        "groups": groups
+        "groups": catalog.groups()
     })
 
 
@@ -63,12 +44,14 @@ def asymmetric(request, alg="rsa"):
     plain_ = getattr(globals()[alg], "decrypt")(cipher, request.session[to]["sk"])
     plain = getattr(globals()[alg], "decrypt")(plain_, request.session[user]["pk"])
 
+    # The session lives in a signed cookie, so the history has to stay small
+    # enough to fit within the 4KB a browser will keep.
     history = request.session["history"]
-    request.session["history"] = history + [{
+    request.session["history"] = (history + [{
         "plain": plain,
         "cipher": cipher,
         "user": user
-    }]
+    }])[-HISTORY_LIMIT:]
 
     return render(request, "cryptography/asymmetric.html", context)
 
