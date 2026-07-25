@@ -10,3 +10,6 @@ staticfiles
 db.sqlite3
 
 .claude
+
+# generated static site
+dist
