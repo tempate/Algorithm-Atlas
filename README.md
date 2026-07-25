@@ -24,31 +24,39 @@ the three cryptography ones: Brython fetches the Python modules over HTTP, which
 
 ### Layout
 
+Pages sit at the top, everything they load is under `assets/`, and everything
+written by someone else is under `vendor/`.
+
 ```
 index.html               the menu
 algorithms/              sorting, path finding, mazes, TSP, regression
-artificialintelligence/  flappy bird, smart rockets, steering, XOR, blocks
+ai/                      flappy bird, smart rockets, steering, XOR, blocks
 cryptography/            hash, symmetric, asymmetric
-static/css               the stylesheet
-static/javascript        p5.js and the sketches
-static/frameworks        bootstrap, jquery, popper
-static/python            the cryptography, served to Brython
-static/brython           the Brython runtime
-test_crypto.py           known-answer tests for the cryptography
+
+assets/css               the stylesheet
+assets/sketches          the p5.js sketches, one directory per page
+assets/python            the cryptography, served to Brython
+
+vendor/p5                p5.js
+vendor/bootstrap         bootstrap, and jquery and popper beside it
+vendor/brython           the Brython runtime
+
+tools/test_crypto.py     known-answer tests for the cryptography
+tools/check_heads.py     checks the pages have not drifted apart
 ```
 
 ### The cryptography
 
-`static/python/cryptography` is hand-written and has no dependencies, so it runs
-under CPython as well as in the browser. `test_crypto.py` checks it against known
-answers: AES against the FIPS-197 vector, SHA-1 against `hashlib`, and RSA
+`assets/python/cryptography` is hand-written and has no dependencies, so it runs
+under CPython as well as in the browser. `tools/test_crypto.py` checks it against
+known answers: AES against the FIPS-197 vector, SHA-1 against `hashlib`, and RSA
 round trips including messages longer than the modulus.
 
 ```
-python test_crypto.py
+python tools/test_crypto.py
 ```
 
-Run it after touching anything under `static/python`.
+Run it after touching anything under `assets/python`.
 
 The asymmetric page keeps its keypairs and conversation in `localStorage`, so a
 reload picks up where it left off. Regenerate clears them.
@@ -61,3 +69,10 @@ the page, and the interesting part is watching the algorithms work.
 Copy the closest existing page, change the title and the script it loads, and add
 a link to it in `index.html`. There is no template to expand and nothing to
 rebuild.
+
+Every page carries its own copy of the same `<head>`, since there is no template
+engine to share one. If you change it, change it everywhere and confirm with:
+
+```
+python tools/check_heads.py
+```

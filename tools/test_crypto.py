@@ -4,15 +4,19 @@ Checks the cryptography against known answers.
 The modules are plain standard library, so this runs under CPython with nothing
 installed, even though the site itself runs them in the browser under Brython.
 
-    python test_crypto.py
+    python tools/test_crypto.py
 """
 
 import hashlib
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                "static", "python"))
+# assets/python is a published directory; importing from it must not litter it
+# with __pycache__.
+sys.dont_write_bytecode = True
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(ROOT, "assets", "python"))
 
 from cryptography import aes, rsa, sha1  # noqa: E402
 

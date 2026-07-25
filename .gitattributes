@@ -1,4 +1,2 @@
-# Vendored runtimes: keep them out of diffs and language stats
-static/brython/*.js linguist-vendored -diff
-static/javascript/p5*.js linguist-vendored -diff
-static/frameworks/** linguist-vendored -diff
+# Everything under vendor/ is third-party: keep it out of diffs and language stats
+vendor/** linguist-vendored -diff
