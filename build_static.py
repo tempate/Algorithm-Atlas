@@ -60,8 +60,10 @@ def relative(html: str, depth: int) -> str:
     html = html.replace('/symmetric-key/', 'symmetric.html')
     html = html.replace('/hash/', 'hash.html')
 
-    html = html.replace('href="/static/', 'href="%sstatic/' % up)
-    html = html.replace('src="/static/', 'src="%sstatic/' % up)
+    # quoted rather than attribute-matched, so paths inside scripts are caught
+    # too, such as the pythonpath Brython is started with
+    html = html.replace('"/static/', '"%sstatic/' % up)
+    html = html.replace("'/static/", "'%sstatic/" % up)
 
     # the home link, which is the only bare "/" left
     html = html.replace('href="/"', 'href="%sindex.html"' % up)

@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block body_attrs %}onload="brython()"{% endblock %}
+
 {% block content %}
 <a class="a-unstyled" href="{% url 'home' %}">
     <h2>Symmetric-key</h2>
@@ -7,36 +9,38 @@
 
 <div style="height: 50px;"></div>
 
-<form action="{% url 'symmetric' %}" method="post">
-    {% csrf_token %}
+<form onsubmit="return false;">
     <div class="form-group">
-        <textarea name="msg" class="form-control" rows="8" cols="80" placeholder="Message to encrypt">{{ cipher }}</textarea>
+        <textarea id="msg" name="msg" class="form-control" rows="8" cols="80" placeholder="Message to encrypt"></textarea>
     </div>
     <div class="form-group row justify-content-center">
         <div class="col-sm-8">
-            <input type="text" class="form-control text-center" id="key" name="key" placeholder="Key" value="{{key}}" readonly>
+            <input type="text" class="form-control text-center" id="key" name="key" placeholder="Key" readonly>
         </div>
         <button type="button" class="btn btn-outline-primary" onclick="generateKey()" name="genkey">Generate</button>
     </div>
     <div class="form-group row justify-content-center">
         <div class="col-sm-4">
-            <select class="form-control text-center" name="alg">
+            <select id="alg" class="form-control text-center" name="alg">
                 <option value="aes">AES</option>
             </select>
         </div>
         <div class="col-sm-4">
-            <select class="form-control text-center" name="action">
+            <select id="action" class="form-control text-center" name="action">
                 <option value="encrypt">Encrypt</option>
                 <option value="decrypt">Decrypt</option>
             </select>
         </div>
     </div>
-    <button type="submit" class="btn btn-outline-primary">Process</button>
+    <button id="run" type="button" class="btn btn-outline-primary" disabled>Starting...</button>
+    <div class="row justify-content-center">
+        <p id="error" class="red margin-top"></p>
+    </div>
 </form>
 
 {% endblock %}
 
-{% block footer %}
+{% block footer %} {% load static %}
     <script type="text/javascript">
         // AES-128 reads the key as 16 raw bytes, so 16 characters is the whole
         // key. Generating 32 only ever showed half a key that mattered.
@@ -51,8 +55,45 @@
             document.getElementById("key").value = key;
         }
 
-        {% if key == None %}
-            generateKey();
-        {% endif %}
+        generateKey();
     </script>
+
+    <script src="{% static 'brython/brython.js' %}"></script>
+    <script src="{% static 'brython/brython_stdlib.js' %}"></script>
+
+    <!-- pythonpath is read off this tag, not from the brython() call -->
+    <script type="text/python" pythonpath="{% static 'python' %}">
+from browser import document
+
+from cryptography import aes
+
+CIPHERS = {"aes": aes}
+KEY_LENGTH = 16     # AES-128 takes a 128-bit key.
+
+
+def run(event):
+    """ Replaces the message with the result, as the server used to. """
+    msg = document["msg"].value
+    key = document["key"].value
+
+    if not msg:
+        document["error"].text = "Type a message."
+        return
+
+    if len(key) != KEY_LENGTH:
+        document["error"].text = \
+            "The key must be exactly %d characters." % KEY_LENGTH
+        return
+
+    document["error"].text = ""
+
+    cipher = CIPHERS[document["alg"].value]
+    document["msg"].value = getattr(cipher, document["action"].value)(msg, key)
+
+
+document["run"].bind("click", run)
+document["run"].text = "Process"
+del document["run"].attrs["disabled"]
+    </script>
+
 {% endblock %}
