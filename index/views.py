@@ -2,7 +2,7 @@ from django.http import Http404, HttpResponseBadRequest
 from django.shortcuts import render
 
 from . import catalog
-from .cryptography import aes, rsa, sha1
+from cryptography import aes, rsa, sha1
 
 HISTORY_LIMIT = 10
 KEY_LENGTH = 16     # AES-128 takes a 128-bit key.

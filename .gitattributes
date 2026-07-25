@@ -1,0 +1,4 @@
+# Vendored runtimes: keep them out of diffs and language stats
+static/brython/*.js linguist-vendored -diff
+static/javascript/p5*.js linguist-vendored -diff
+static/frameworks/** linguist-vendored -diff

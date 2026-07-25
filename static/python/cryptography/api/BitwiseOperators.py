@@ -10,7 +10,7 @@ def number_to_format(num: int, length: int, base: str) -> str:
 
 
 def word_to_list(text: str, size: int = 8) -> List[int]:
-    if type(text) == int:
+    if isinstance(text, int):
         text = number_to_format(text, 512, base="b")
 
     """ Split a word (typically a sequence of bits) into a list of elements. """

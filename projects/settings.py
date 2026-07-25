@@ -1,7 +1,12 @@
 import os
+import sys
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# The cryptography now lives where the browser can fetch it. Django is only
+# still here to render the static pages, and goes once that is done.
+sys.path.insert(0, os.path.join(BASE_DIR, "static", "python"))
 
 
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
