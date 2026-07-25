@@ -1,13 +1,10 @@
-import numpy as np
-
 from .api.BitwiseOperators import *
 
-K = np.array([
+K = [
     0x5A827999,
     0x6ED9EBA1,
     0x8F1BBCDC,
     0xCA62C1D6]
-    , dtype=object)
 
 
 def hash_sum(msg):

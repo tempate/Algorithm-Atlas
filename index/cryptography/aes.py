@@ -1,5 +1,3 @@
-import numpy as np
-
 from .api.BlockCipher import *
 from .api.GaloisField import *
 
@@ -8,7 +6,13 @@ Nb = 4          # Number of columns comprising the State.
 Nk = 4          # Number of 32-bit words comprising the Cipher Key.
 Nr = Nk + 6     # Number of rounds
 
-S_BOX = np.matrix("""
+
+def parse_matrix(text: str) -> List[List[int]]:
+    """ Reads a matrix written as rows of numbers separated by semicolons. """
+    return [[int(n) for n in row.split()] for row in text.strip().split(";")]
+
+
+S_BOX = parse_matrix("""
     99 124 119 123 242 107 111 197 48 1 103 43 254 215 171 118;
     202 130 201 125 250 89 71 240 173 212 162 175 156 164 114 192;
     183 253 147 38 54 63 247 204 52 165 229 241 113 216 49 21;
@@ -27,7 +31,7 @@ S_BOX = np.matrix("""
     140 161 137 13 191 230 66 104 65 153 45 15 176 84 187 22
 """)
 
-INV_S_BOX = np.matrix("""
+INV_S_BOX = parse_matrix("""
     82 9 106 213 48 54 165 56 191 64 163 158 129 243 215 251;
     124 227 57 130 155 47 255 135 52 142 67 68 196 222 233 203;
     84 123 148 50 166 194 35 61 238 76 149 11 66 250 195 78;
@@ -159,7 +163,7 @@ def key_expansion(key: List[int]) -> List[int]:
         for i in range(len(word_)):
             h = number_to_format(word_[i], 2, 'x')
             d = [int(p, 16) for p in h]
-            word_[i] = int(S_BOX[d[0], d[1]])
+            word_[i] = int(S_BOX[d[0]][d[1]])
 
         return list_to_word(word_, 8)
 
@@ -207,7 +211,7 @@ def sub_bytes(state: List[str]) -> List[str]:
             y -- Second digit
         """
         h = number_to_format(state[i], 2, 'x')
-        state[i] = int(S_BOX[int(h[0], 16), int(h[1], 16)])
+        state[i] = int(S_BOX[int(h[0], 16)][int(h[1], 16)])
 
     return state
 
@@ -215,7 +219,7 @@ def sub_bytes(state: List[str]) -> List[str]:
 def inv_sub_bytes(state: List[str]) -> List[str]:
     for i in range(len(state)):
         h = number_to_format(state[i], 2, 'x')
-        state[i] = int(INV_S_BOX[int(h[0], 16), int(h[1], 16)])
+        state[i] = int(INV_S_BOX[int(h[0], 16)][int(h[1], 16)])
 
     return state
 
@@ -226,7 +230,7 @@ def shift_rows(state: List[int]) -> List[int]:
     new_state = []
 
     for i in range(4):
-        new_state += np.roll(state[i], 4-i, axis=1).tolist()[0]
+        new_state += roll(state[i], 4 - i)
 
     return transpose_list(new_state)
 
@@ -237,7 +241,7 @@ def inv_shift_rows(state: List[int]) -> List[int]:
     new_state = []
 
     for i in range(4):
-        new_state += np.roll(state[i], i, axis=1).tolist()[0]
+        new_state += roll(state[i], i)
 
     return transpose_list(new_state)
 
@@ -249,7 +253,7 @@ def mix_columns(state: List[int]) -> List[int]:
 
     Note: All multiplications and additions are performed within Galois' Field.
     """
-    A = np.matrix("""
+    A = parse_matrix("""
         2 3 1 1;
         1 2 3 1;
         1 1 2 3;
@@ -263,7 +267,7 @@ def mix_columns(state: List[int]) -> List[int]:
 
 
 def inv_mix_columns(state: List[int]) -> List[int]:
-    A = np.matrix("""
+    A = parse_matrix("""
         14 11 13  9;
          9 14 11 13;
         13  9 14 11;
@@ -285,3 +289,10 @@ def transpose_list(list_: List[int]) -> List[int]:
             new_list.append(list_[i+4*j])
 
     return new_list
+
+
+def roll(row: List[int], offset: int) -> List[int]:
+    """ Shifts a row to the right, wrapping the values that fall off the end. """
+    offset %= len(row)
+
+    return row[-offset:] + row[:-offset] if offset else list(row)
