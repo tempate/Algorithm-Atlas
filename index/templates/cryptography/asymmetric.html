@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 
-{% block body_attrs %}onload="brython()"{% endblock %}
+{# Brython caches compiled modules in indexedDB. With that on, the first
+   visit works and every later one silently fails to run this page's
+   script at all, so it is turned off. #}
+{% block body_attrs %}onload="brython({indexedDB: false})"{% endblock %}
 
 {% block content %}
 <a class="a-unstyled" href="{% url 'home' %}">
@@ -115,23 +118,61 @@
 
 <!-- pythonpath is read off this tag, not from the brython() call -->
 <script type="text/python" pythonpath="{% static 'python' %}">
+import json
+
 from browser import document, html, window
+from browser.local_storage import storage
 
 from cryptography import rsa
 
 USERS = ("alice", "bob")
 MAX_MESSAGE = 500
+STORAGE_KEY = "asymmetric-key"
 
 state = {}
 
 
 def load_state() -> dict:
-    """ Nothing is kept between page loads yet. """
-    return {}
+    """
+    Reads back the conversation from a previous visit.
+
+    Anything unreadable is treated as absent, so a stale or hand-edited entry
+    costs a fresh keyring rather than a broken page.
+    """
+    if STORAGE_KEY not in storage:
+        return {}
+
+    raw = storage[STORAGE_KEY]
+
+    try:
+        stored = json.loads(raw)
+        loaded = {"history": stored["history"]}
+
+        for name in USERS:
+            # The keys are far larger than a JSON number survives, so they are
+            # written as text and read back as ints.
+            loaded[name] = {part: [int(n) for n in stored[name][part]]
+                            for part in ("pk", "sk")}
+    except Exception:
+        # Deliberately broad: whatever is wrong with a stored entry, the right
+        # answer is a fresh keyring rather than a page that will not start.
+        return {}
+
+    return loaded
 
 
 def save_state():
-    pass
+    keys = {name: {part: [str(n) for n in state[name][part]]
+                   for part in ("pk", "sk")}
+            for name in USERS}
+    keys["history"] = state["history"]
+
+    try:
+        storage[STORAGE_KEY] = json.dumps(keys)
+    except Exception:
+        # A full or disabled store should not stop the demo working; the
+        # conversation just will not outlive the page.
+        pass
 
 
 def new_keys():
@@ -206,20 +247,28 @@ def regenerate(event):
     show_history()
 
 
-state.update(load_state())
+def start():
+    state.update(load_state())
 
-if not all(name in state for name in USERS + ("history",)):
-    new_keys()
+    if not all(name in state for name in USERS + ("history",)):
+        new_keys()
 
-show_keys()
-show_history()
+    show_keys()
+    show_history()
 
-for name in USERS:
-    document[name + "-send"].bind("click", send(name))
-    del document[name + "-send"].attrs["disabled"]
+    for name in USERS:
+        document[name + "-send"].bind("click", send(name))
+        del document[name + "-send"].attrs["disabled"]
 
-document["regenerate"].bind("click", regenerate)
-del document["regenerate"].attrs["disabled"]
+    document["regenerate"].bind("click", regenerate)
+    del document["regenerate"].attrs["disabled"]
+
+
+try:
+    start()
+except Exception as exc:
+    # Better a visible reason than a page stuck on "generating...".
+    document["error"].text = "Could not start: %s: %s" % (type(exc).__name__, exc)
 </script>
 
 {% endblock %}

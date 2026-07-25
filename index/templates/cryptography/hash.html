@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 
-{% block body_attrs %}onload="brython()"{% endblock %}
+{# Brython caches compiled modules in indexedDB. With that on, the first
+   visit works and every later one silently fails to run this page's
+   script at all, so it is turned off. #}
+{% block body_attrs %}onload="brython({indexedDB: false})"{% endblock %}
 
 {% block content %}
 <a class="a-unstyled" href="{% url 'home' %}">
