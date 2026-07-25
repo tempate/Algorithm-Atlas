@@ -18,6 +18,22 @@ python -m http.server 8000
 
 Then open <http://localhost:8000>.
 
+### Publishing it
+
+The site is plain files, so it can be served from anywhere. On GitHub Pages,
+under Settings → Pages, set the source to *Deploy from a branch* and pick the
+branch with `/ (root)` as the folder. There is nothing to build.
+
+The empty `.nojekyll` file at the root is load bearing. Without it GitHub runs
+Jekyll over the repository first, and Jekyll drops two things this site needs:
+`vendor/`, which is in its default exclude list, and the `__init__.py` files,
+because it skips anything whose name starts with an underscore. The result
+would be a site with no Bootstrap, no p5.js, no Brython, and no working
+cryptography pages.
+
+Links are relative throughout, so the site works both at a domain root and
+under `https://<user>.github.io/<repo>/`.
+
 Opening `index.html` from the filesystem works for the p5.js pages, but not for
 the three cryptography ones: Brython fetches the Python modules over HTTP, which
 `file://` does not allow.

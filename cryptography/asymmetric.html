@@ -158,7 +158,9 @@ from cryptography import rsa
 
 USERS = ("alice", "bob")
 MAX_MESSAGE = 500
-STORAGE_KEY = "asymmetric-key"
+# Namespaced because every project site a user publishes shares the one
+# <user>.github.io origin, and so shares localStorage with all the others.
+STORAGE_KEY = "algorithm-atlas.asymmetric"
 
 state = {}
 
