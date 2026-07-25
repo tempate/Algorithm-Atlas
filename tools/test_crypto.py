@@ -11,12 +11,12 @@ import hashlib
 import os
 import sys
 
-# assets/python is a published directory; importing from it must not litter it
-# with __pycache__.
+# projects/ is a published directory; importing from it must not litter it with
+# __pycache__.
 sys.dont_write_bytecode = True
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, "assets", "python"))
+sys.path.insert(0, os.path.join(ROOT, "projects"))
 
 from cryptography import aes, rsa, sha1  # noqa: E402
 

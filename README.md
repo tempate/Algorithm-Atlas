@@ -24,18 +24,18 @@ the three cryptography ones: Brython fetches the Python modules over HTTP, which
 
 ### Layout
 
-Pages sit at the top, everything they load is under `assets/`, and everything
-written by someone else is under `vendor/`.
+`projects/` is the interesting part: the algorithms themselves, grouped the same
+way the site groups them. `pages/` is the HTML that puts them on screen, and it
+is mostly the same boilerplate thirteen times over.
 
 ```
-index.html               the menu
-algorithms/              sorting, path finding, mazes, TSP, regression
-ai/                      flappy bird, smart rockets, steering, XOR, blocks
-cryptography/            hash, symmetric, asymmetric
+projects/algorithms      mazes, path finding, regression, sorting, TSP   (p5.js)
+projects/ai              blocks, flappy bird, rockets, steering, XOR     (p5.js)
+projects/cryptography    AES, SHA-1, RSA                                 (python)
 
-assets/css               the stylesheet
-assets/sketches          the p5.js sketches, one directory per page
-assets/python            the cryptography, served to Brython
+index.html               the menu, at the root so the site has a front page
+pages/                   one page per project, grouped as above
+css/style.css            the stylesheet
 
 vendor/p5                p5.js
 vendor/bootstrap         bootstrap, and jquery and popper beside it
@@ -47,7 +47,7 @@ tools/check_heads.py     checks the pages have not drifted apart
 
 ### The cryptography
 
-`assets/python/cryptography` is hand-written and has no dependencies, so it runs
+`projects/cryptography` is hand-written and has no dependencies, so it runs
 under CPython as well as in the browser. `tools/test_crypto.py` checks it against
 known answers: AES against the FIPS-197 vector, SHA-1 against `hashlib`, and RSA
 round trips including messages longer than the modulus.
@@ -56,7 +56,7 @@ round trips including messages longer than the modulus.
 python tools/test_crypto.py
 ```
 
-Run it after touching anything under `assets/python`.
+Run it after touching anything under `projects/cryptography`.
 
 The asymmetric page keeps its keypairs and conversation in `localStorage`, so a
 reload picks up where it left off. Regenerate clears them.
@@ -66,9 +66,9 @@ the page, and the interesting part is watching the algorithms work.
 
 ### Adding a page
 
-Copy the closest existing page, change the title and the script it loads, and add
-a link to it in `index.html`. There is no template to expand and nothing to
-rebuild.
+Put the code under `projects/`, copy the closest existing page in `pages/`, change
+the title and the script it loads, and add a link to it in `index.html`. There is
+no template to expand and nothing to rebuild.
 
 Every page carries its own copy of the same `<head>`, since there is no template
 engine to share one. If you change it, change it everywhere and confirm with:

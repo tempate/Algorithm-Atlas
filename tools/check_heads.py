@@ -15,8 +15,8 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HEAD = re.compile(r"<head>(.*?)</head>", re.S)
 
-# Directories that hold pages. Everything else is assets or tooling.
-PAGE_DIRS = ("", "algorithms", "ai", "cryptography")
+# index.html sits at the root so the site has one; the rest live under pages/.
+PAGE_DIRS = ("", "pages/algorithms", "pages/ai", "pages/cryptography")
 
 
 def pages():
