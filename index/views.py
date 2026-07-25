@@ -7,6 +7,14 @@ from .cryptography import aes, rsa, sha1
 HISTORY_LIMIT = 10
 KEY_LENGTH = 16     # AES-128 takes a 128-bit key.
 
+# One message has to leave room for itself in the cookie, since the history
+# cannot be trimmed below the message that was just sent.
+MAX_MESSAGE = 500
+
+# The session rides in a signed cookie and browsers refuse one over 4KB. Leave
+# room for the cookie's own name and attributes.
+COOKIE_BUDGET = 3800
+
 # Every algorithm the views are allowed to reach. Names arrive from the URL and
 # the request body, so they are looked up here rather than in globals().
 CIPHERS = {"aes": aes}
@@ -53,6 +61,10 @@ def asymmetric(request, alg="rsa"):
     if user not in USERS or not msg or action not in ACTIONS:
         return HttpResponseBadRequest("Pick a sender and type a message.")
 
+    if len(msg) > MAX_MESSAGE:
+        return HttpResponseBadRequest(
+            "Messages are limited to %d characters." % MAX_MESSAGE)
+
     context["action"] = action
 
     to = "bob" if user == "alice" else "alice"
@@ -62,16 +74,34 @@ def asymmetric(request, alg="rsa"):
     plain_ = module.decrypt(cipher, request.session[to]["sk"])
     plain = module.decrypt(plain_, request.session[user]["pk"])
 
-    # The session lives in a signed cookie, so the history has to stay small
-    # enough to fit within the 4KB a browser will keep.
-    history = request.session["history"]
-    request.session["history"] = (history + [{
+    history = request.session["history"] + [{
         "plain": plain,
         "cipher": cipher,
         "user": user
-    }])[-HISTORY_LIMIT:]
+    }]
+
+    request.session["history"] = _fit_cookie(request.session, history[-HISTORY_LIMIT:])
 
     return render(request, "cryptography/asymmetric.html", context)
+
+
+def _fit_cookie(session, history):
+    """
+    Drop the oldest messages until the signed session fits in a cookie.
+
+    A count alone is not enough of a limit: how much room an entry takes
+    depends on the message length and on how wide the keys are, so the encoded
+    size is what gets measured.
+    """
+    while len(history) > 1:
+        candidate = dict(session.items(), history=history)
+
+        if len(session.encode(candidate)) <= COOKIE_BUDGET:
+            break
+
+        history = history[1:]
+
+    return history
 
 
 def _has_keys(request):

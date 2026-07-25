@@ -17,7 +17,7 @@ class SteeringBehaviours {
         this._generation = generation ? generation : 0;
 
         this._name = "Steering Behaviours";
-        this._summary = "";
+        this._summary = "Breeds a population of routes, favouring the shorter ones as parents and mutating the offspring, one generation at a time.";
     }
 
     setupCounter() {

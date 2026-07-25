@@ -3,7 +3,7 @@ class LexicographicOrder {
         this._finished = false;
 
         this._name = "Lexicographic Order";
-        this._summary = "";
+        this._summary = "Steps through every permutation of the cities in order. Exact, but the number of routes grows with the factorial of the city count.";
 
         for (let i = 0; i < k; i++) {
             cities[i]._id = i;

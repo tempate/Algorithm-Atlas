@@ -4,7 +4,7 @@ class Greedy {
         this._current = [cities[this._count++]];
 
         this._name = "Greedy";
-        this._summary = "";
+        this._summary = "Hops to the nearest city not yet visited. Fast, and usually wrong by a little, because an early cheap hop can strand a distant city for last.";
     }
 
     findPath() {

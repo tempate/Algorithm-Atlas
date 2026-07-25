@@ -25,7 +25,7 @@
             <input type="hidden" name="user" value="Alice">
             <input type="hidden" name="action" id="action1" value="{{ action }}">
             <div class="input-group">
-                <input type="text" name="msg" class="form-control" placeholder="Message from Alice">
+                <input type="text" name="msg" class="form-control" maxlength="500" placeholder="Message from Alice">
                 <div class="input-group-btn">
                     <button type="submit" class="btn btn-outline-primary">Send</button>
                 </div>
@@ -51,7 +51,7 @@
             <input type="hidden" name="user" value="Bob">
             <input type="hidden" name="action" id="action2" value="{{ action }}">
             <div class="input-group">
-                <input type="text" name="msg" class="form-control" placeholder="Message from Bob">
+                <input type="text" name="msg" class="form-control" maxlength="500" placeholder="Message from Bob">
                 <div class="input-group-btn">
                     <button type="submit" class="btn btn-outline-primary">Send</button>
                 </div>

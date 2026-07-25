@@ -7,6 +7,9 @@ let algorithms, algorithm;
 function setup() {
     let canvas = createCanvas(450, 450);
     canvas.parent("canvas");
+    // Scoped to the canvas: as a global handler this caught clicks anywhere on
+    // the page, including the algorithm dropdown.
+    canvas.mousePressed(addPoint);
 
     algorithms = [
         OrdinaryLeastSquares,
@@ -57,9 +60,10 @@ function draw() {
         ellipse(x, y, 8, 8);
     }
 
-    if (points.length > 1)
+    if (points.length > 1) {
         algorithm.findLine();
         drawLine(algorithm._m, algorithm._b);
+    }
 }
 
 function drawLine(m, b) {
@@ -81,7 +85,7 @@ function drawLine(m, b) {
 class OrdinaryLeastSquares {
     constructor() {
         this._name = "Ordinary Least Squares";
-        this._summary = "";
+        this._summary = "Solves for the line that minimises the total squared error in one step, straight from the means of the points.";
 
         this._m = 0;
         this._b = 0;
@@ -114,7 +118,7 @@ class OrdinaryLeastSquares {
 class GradientDescent {
     constructor() {
         this._name = "Gradient Descent";
-        this._summary = "";
+        this._summary = "Starts from a flat line and nudges its slope and intercept a little against the error of each point, over and over.";
 
         this._learning_rate = 0.1;
 
@@ -127,14 +131,13 @@ class GradientDescent {
             const guess = this._m * point.x + this._b;
             const error = point.y - guess;
 
-            console.log(error);
             this._m += error * point.x * this._learning_rate;
             this._b += error * this._learning_rate;
         }
     }
 }
 
-function mousePressed() {
+function addPoint() {
     let x = map(mouseX, 0, width, 0, 1);
     let y = map(mouseY, 0, height, 1, 0);
 

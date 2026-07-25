@@ -1,7 +1,7 @@
 class DepthFirstSearch {
     constructor() {
         this._name = "Depth First";
-        this._summary = "";
+        this._summary = "Walks to a random unvisited neighbour, knocking down the wall between them, and backtracks along a stack whenever it reaches a dead end.";
         this._finished = false;
 
         this._stack = [];

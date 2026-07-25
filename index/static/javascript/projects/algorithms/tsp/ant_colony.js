@@ -3,7 +3,7 @@ class AntColony {
         this._finished = false;
 
         this._name = "Ant Colony";
-        this._summary = "";
+        this._summary = "Ants wander between cities and leave pheromone along the way, more of it on shorter routes, which biases where later ants choose to walk.";
     }
 
     findPath() {
