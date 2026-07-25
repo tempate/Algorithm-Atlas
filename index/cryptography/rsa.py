@@ -2,12 +2,10 @@ from .api.BitwiseOperators import *
 from .api.PrimeNumbers import *
 from .api.BlockCipher import *
 
-PRIME_BITS = 256    # n ends up twice this wide.
-
 
 class RSA(object):
     def __init__(self):
-        p, q = get_primes(2, bits=PRIME_BITS)
+        p, q = get_primes(2, bits=256)
 
         # RSA's security is based on factorization.
         self.n = p * q
@@ -38,71 +36,58 @@ class RSA(object):
         return xgcd(e, self.phi) % self.phi
 
 
-def cipher_width(n: int) -> int:
-    """ Bytes needed to hold any value below n. """
-    return (n.bit_length() + 7) // 8
-
-
-def block_size(n: int) -> int:
-    """
-    Plaintext bytes per block. One byte goes to the leading marker, and one more
-    keeps the block below n.
-    """
-    return cipher_width(n) - 2
-
-
-def to_bytes(value: int, width: int) -> List[int]:
-    """ The value as a fixed number of bytes, most significant first. """
-    return word_to_list(number_to_format(value, width * 8, "b"), 8)
-
-
 def encrypt(msg: str, key: List[int]) -> str:
     """
-    Encrypts the message one block at a time.
+    Encrypts each byte using RSA. A real example would work with high primes and,
+    therefore, it wouldn't generate a list of words but rather a list of bytes.
+    Making it very hard to crack with known attacks.
+    The most used one is factorization, despite it being 'impossible' on big primes.
 
-    A block has to stay below n, so a longer message must be split. Encrypting
-    it whole silently wrapped the modulus and threw away everything above it.
+    A block has to stay below n, so the message is split into blocks that fit.
     """
-    n = key[1]
-    width, size = cipher_width(n), block_size(n)
-    data = [ord(char) for char in msg]
+    width = (key[1].bit_length() + 7) // 8
+    cipher_text = ""
 
-    cipher = ""
+    for i in range(0, len(msg), width - 2):
+        # The leading byte keeps the block's length unambiguous, so that a block
+        # starting with a zero byte survives the round trip.
+        cipher = number_to_format(1, 8, "b")
 
-    for i in range(0, len(data), size):
-        # The leading 1 keeps the block's length unambiguous, so a block that
-        # starts with a zero byte still survives the round trip.
-        block = list_to_word([1] + data[i:i + size])
+        for char in msg[i:i + width - 2]:
+            cipher += number_to_format(ord(char), 8, "b")
 
         # x ** e (mod n)
-        y = pow(block, key[0], n)
+        y = pow(int(cipher, 2), key[0], key[1])
 
-        # Fixed width, so decrypt can find the block boundaries again.
-        cipher += "".join(chr(byte) for byte in to_bytes(y, width))
+        # Always the same width, so decrypt can find the boundaries again.
+        bits = number_to_format(y, width * 8, "b")
+        cipher_text += "".join([chr(byte) for byte in word_to_list(bits, 8)])
 
-    return cipher
+    return cipher_text
 
 
 def decrypt(msg: str, key: List[int]) -> str:
     """
-    Follows the same equation as in the encryption, block by block.
+    Follows the same equation as in the encryption.
+    Different functions are used for easiness of use.
     """
-    n = key[1]
-    width = cipher_width(n)
-
-    plain = ""
+    width = (key[1].bit_length() + 7) // 8
+    plain_text = ""
 
     for i in range(0, len(msg), width):
-        block = list_to_word([ord(char) for char in msg[i:i + width]])
+        cipher = ""
+
+        for char in msg[i:i + width]:
+            cipher += number_to_format(ord(char), 8, "b")
 
         # x ** d (mod n)
-        x = pow(block, key[0], n)
+        x = pow(int(cipher, 2), key[0], key[1])
 
-        # The marker sits in the top byte, so the value is exactly as wide as
-        # the original block was. Drop it and keep the rest.
-        plain += "".join(chr(byte) for byte in to_bytes(x, cipher_width(x))[1:])
+        # Dropping the leading marker bit leaves exactly the bytes that went in.
+        bits = number_to_format(x, 0, "b")[1:]
+        plain_text += "".join([chr(byte) for byte in word_to_list(bits, 8)])
 
-    return plain
+    return plain_text
 
 
 def gcd(a: int, b: int) -> int:
