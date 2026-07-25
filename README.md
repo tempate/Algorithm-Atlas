@@ -25,16 +25,16 @@ the three cryptography ones: Brython fetches the Python modules over HTTP, which
 ### Layout
 
 `projects/` is the interesting part: the algorithms themselves, grouped the same
-way the site groups them. `pages/` is the HTML that puts them on screen, and it
-is mostly the same boilerplate thirteen times over.
+way the site groups them. The HTML beside it is mostly the same boilerplate
+thirteen times over, and exists to put them on screen.
 
 ```
 projects/algorithms      mazes, path finding, regression, sorting, TSP   (p5.js)
 projects/ai              blocks, flappy bird, rockets, steering, XOR     (p5.js)
 projects/cryptography    AES, SHA-1, RSA                                 (python)
 
-index.html               the menu, at the root so the site has a front page
-pages/                   one page per project, grouped as above
+index.html               the menu
+algorithms/  ai/  cryptography/   one page per project, grouped as above
 css/style.css            the stylesheet
 
 vendor/p5                p5.js
@@ -66,7 +66,7 @@ the page, and the interesting part is watching the algorithms work.
 
 ### Adding a page
 
-Put the code under `projects/`, copy the closest existing page in `pages/`, change
+Put the code under `projects/`, copy the closest existing page, change
 the title and the script it loads, and add a link to it in `index.html`. There is
 no template to expand and nothing to rebuild.
 
