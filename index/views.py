@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 
 from . import catalog
-from .cryptography import aes, rsa, sha1, pgp
+from .cryptography import aes, rsa, sha1
 
 HISTORY_LIMIT = 10
 
