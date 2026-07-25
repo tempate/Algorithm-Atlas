@@ -14,7 +14,7 @@ class Vehicle {
   setupDNA(dna) {
       let new_dna = {
           "food_weight": random(-1, 1),
-          "food_weight": random(-1, 1),
+          "poison_weight": random(-1, 1),
           "food_radius": random(100),
           "poison_radius": random(100),
           "max_speed": random(4,8),
@@ -87,7 +87,7 @@ class Vehicle {
   // A method that calculates a steering force towards a target
   // STEER = DESIRED MINUS VELOCITY
   seek(target) {
-      let desired = p5.Vector.sub(target, this._p);  // A vector pointing food_radiusom the location to the target
+      let desired = p5.Vector.sub(target, this._p);  // A vector pointing from the location to the target
 
       // Scale to maximum speed
       desired.setMag(this._dna["max_speed"]);

@@ -5,7 +5,7 @@ from .api.BlockCipher import *
 
 class RSA(object):
     def __init__(self):
-        p, q = get_primes(2, bits=100)
+        p, q = get_primes(2, bits=256)
 
         # RSA's security is based on factorization.
         self.n = p * q
@@ -42,36 +42,50 @@ def encrypt(msg: str, key: List[int]) -> str:
     therefore, it wouldn't generate a list of words but rather a list of bytes.
     Making it very hard to crack with known attacks.
     The most used one is factorization, despite it being 'impossible' on big primes.
+
+    A block has to stay below n, so the message is split into blocks that fit.
     """
-    cipher = ""
+    width = (key[1].bit_length() + 7) // 8
+    cipher_text = ""
 
-    for char in msg:
-        cipher += number_to_format(ord(char), 8, "b")
+    for i in range(0, len(msg), width - 2):
+        # The leading byte keeps the block's length unambiguous, so that a block
+        # starting with a zero byte survives the round trip.
+        cipher = number_to_format(1, 8, "b")
 
-    # x ** e (mod n)
-    y = pow(int(cipher, 2), key[0], key[1])
-    print(y)
-    return number_to_msg(y)
+        for char in msg[i:i + width - 2]:
+            cipher += number_to_format(ord(char), 8, "b")
+
+        # x ** e (mod n)
+        y = pow(int(cipher, 2), key[0], key[1])
+
+        # Always the same width, so decrypt can find the boundaries again.
+        bits = number_to_format(y, width * 8, "b")
+        cipher_text += "".join([chr(byte) for byte in word_to_list(bits, 8)])
+
+    return cipher_text
 
 
-def decrypt(msg: int, key: List[int]) -> str:
+def decrypt(msg: str, key: List[int]) -> str:
     """
     Follows the same equation as in the encryption.
     Different functions are used for easiness of use.
     """
+    width = (key[1].bit_length() + 7) // 8
+    plain_text = ""
 
-    cipher = ""
+    for i in range(0, len(msg), width):
+        cipher = ""
 
-    for char in msg:
-        cipher += number_to_format(ord(char), 8, "b")
+        for char in msg[i:i + width]:
+            cipher += number_to_format(ord(char), 8, "b")
 
-    print(int(cipher, 2))
+        # x ** d (mod n)
+        x = pow(int(cipher, 2), key[0], key[1])
 
-    # x ** d (mod n)
-    x = pow(int(cipher, 2), key[0], key[1])
-    bytes_ = word_to_list(x, 8)
-
-    plain_text = "".join([chr(byte) for byte in bytes_])
+        # Dropping the leading marker bit leaves exactly the bytes that went in.
+        bits = number_to_format(x, 0, "b")[1:]
+        plain_text += "".join([chr(byte) for byte in word_to_list(bits, 8)])
 
     return plain_text
 

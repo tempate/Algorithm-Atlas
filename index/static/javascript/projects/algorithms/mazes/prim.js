@@ -1,7 +1,7 @@
 class Prim {
     constructor() {
         this._name = "Prim's";
-        this._summary = "";
+        this._summary = "Grows the maze outwards from a single cell, each step opening a random wall on the frontier between the maze and the cells outside it.";
         this._finished = false;
 
         this._walls = [];
@@ -24,8 +24,6 @@ class Prim {
 
         for (let i = 0; i < neighbors.length; i++) {
             let neighbor = neighbors[i];
-            if (neighbor === grid[0])
-                console.log("Sup");
             if (neighbor && !neighbor._visited && this._walls.indexOf(neighbor) === -1) {
                 this._walls.push(neighbor);
                 if (i < 2) {

@@ -1,7 +1,7 @@
 class Kruskal {
     constructor() {
         this._name = "Kruskal's";
-        this._summary = "";
+        this._summary = "Starts with every cell in its own set and removes walls between cells that belong to different sets, merging them until one set remains.";
         this._finished = false;
 
         this._cells = grid.slice();

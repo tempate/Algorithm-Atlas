@@ -1,12 +1,10 @@
 from .BitwiseOperators import *
 
-import numpy as np
-
 
 def inv_mix_columns(state: List[int]) -> List[int]:
     for i in range(0, 16, 4):
-        a = np.zeros((4,), dtype=object)
-        b = np.zeros((4,), dtype=object)
+        a = [0] * 4
+        b = [0] * 4
         # a is a copy of the input array
         # b is a multiplied by 2
 
@@ -28,14 +26,14 @@ def inv_mix_columns(state: List[int]) -> List[int]:
 
 
 def matrix_mult(A, B) -> List[int]:
-    x = np.zeros((4,4), dtype=object)
+    x = [[0] * len(B[0]) for _ in range(len(A))]
 
-    for i in range(A.shape[0]):
-        for j in range(B.shape[1]):
-            for k in range(A.shape[1]):
-                x[i, j] ^= rijn_mult(B[k, j], A[i, k])
+    for i in range(len(A)):
+        for j in range(len(B[0])):
+            for k in range(len(A[0])):
+                x[i][j] ^= rijn_mult(B[k][j], A[i][k])
 
-    return matrix_to_list(x.T)
+    return matrix_to_list(transpose(x))
 
 
 def rijn_mult(x, y):
@@ -79,10 +77,13 @@ def times14(x):
 
 def list_to_matrix(b: List[int]):
     """ Converts a list of size 16 to a transposed (4x4) matrix. """
-    b = np.matrix(b, dtype=int)
-    b = np.reshape(b, (4, 4))
-    return np.transpose(b)
+    return transpose([b[i * 4:(i + 1) * 4] for i in range(4)])
 
 
 def matrix_to_list(A):
-    return np.array(A).reshape(-1,).tolist()
+    return [value for row in A for value in row]
+
+
+def transpose(A):
+    """ Swaps a matrix's rows and columns. """
+    return [[row[i] for row in A] for i in range(len(A[0]))]

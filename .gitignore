@@ -1,2 +1,12 @@
 __pycache__
+*.pyc
 venv
+
+# collectstatic output
+staticfiles
+
+# the site has no database, but runserver leaves one behind if a stray
+# migration ever runs
+db.sqlite3
+
+.claude

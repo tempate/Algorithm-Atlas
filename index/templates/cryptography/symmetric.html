@@ -38,11 +38,13 @@
 
 {% block footer %}
     <script type="text/javascript">
+        // AES-128 reads the key as 16 raw bytes, so 16 characters is the whole
+        // key. Generating 32 only ever showed half a key that mattered.
         function generateKey() {
             let values = "0123456789ABCDEF";
             let key = "";
 
-            for (let i = 0; i < 32; i++) {
+            for (let i = 0; i < 16; i++) {
                 key += values[parseInt(Math.random()*16)];
             }
 

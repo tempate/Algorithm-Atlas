@@ -7,7 +7,7 @@ class opt2 {
         this._changed = false;
 
         this._name = "2-opt"
-        this._summary = ""
+        this._summary = "Reverses a section of the route whenever doing so makes it shorter, repeating until no single reversal is an improvement."
     }
 
     findPath() {

@@ -4,7 +4,7 @@ class AStar {
         this._path = [];
 
         this._name = "A Star";
-        this._summary = "";
+        this._summary = "Dijkstra plus an estimate of the distance still to go, which pulls the search towards the goal instead of spreading out evenly.";
     }
 
     findPath(current, neighbor) {

@@ -4,7 +4,7 @@ class Dijkstra {
         this._path = [];
 
         this._name = "Dijkstra";
-        this._summary = "";
+        this._summary = "Always expands the nearest unvisited spot, so the first time it reaches the goal it has already found the shortest path.";
     }
 
     findPath(current, neighbor) {

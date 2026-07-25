@@ -7,7 +7,7 @@ class SimulatedAnnealing {
         this._finished = false;
 
         this._name = "Simulated Annealing";
-        this._summary = "";
+        this._summary = "Swaps cities at random and keeps the change if it helps. Worse routes are accepted too, less and less often as the temperature falls.";
     }
 
     findPath() {
