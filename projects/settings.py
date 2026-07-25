@@ -47,6 +47,19 @@ MIDDLEWARE = [
 # Signing them into a cookie is what lets the site run without a database.
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 
+# Render terminates TLS in front of the app and forwards the original scheme.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+if not DEBUG:
+    # The session carries the whole conversation now that there is no database
+    # behind it, so it should never travel in the clear.
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+
+    # HSTS is deliberately left off: browsers remember it for as long as it is
+    # set, which is awkward to undo. Worth turning on once the site is settled.
+
 
 # STATICFILES_STORAGE was removed in Django 5.1. Setting it here did nothing
 # but look right: the default backend stayed in place, so WhiteNoise never
